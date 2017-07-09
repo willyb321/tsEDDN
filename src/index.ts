@@ -54,8 +54,8 @@ app.get('/api/cmdr/:cmdr', (req: any, res: any) => {
 						console.error(err);
 						Raven.captureException(err);
 					}
-					let count: number = await collection.count({uploader: cmdr});
-					let totalPages: number = Math.round((count/25));
+					const count: number = await collection.count({uploader: cmdr});
+					let totalPages: number = Math.round((count / 25));
 					if (totalPages === 0) {
 						totalPages = 1;
 					}
@@ -97,12 +97,12 @@ app.get('/api/system/:system', (req: any, res: any) => {
 						console.error(err);
 						Raven.captureException(err);
 					}
-					let count: number = await collection.count({StarSystem: system});
+					const count: number = await collection.count({StarSystem: system});
 					let newdocs: newDocs = {
 						currentPage: page,
 						perPage: 25,
 						total: count,
-						totaPages: Math.round((count/25)),
+						totaPages: Math.round((count / 25)),
 						data: docs
 					};
 					docs = null;
@@ -136,12 +136,12 @@ app.get('/api/station/:station', (req: any, res: any) => {
 						console.error(err);
 						Raven.captureException(err);
 					}
-					let count: number = await collection.count({StarSystem: station});
+					const count: number = await collection.count({StarSystem: station});
 					let newdocs: newDocs = {
 						currentPage: page,
 						perPage: 25,
 						total: count,
-						totaPages: Math.round((count/25)),
+						totaPages: Math.round((count / 25)),
 						data: docs
 					};
 					docs = null;
@@ -163,7 +163,7 @@ app.get('/api/recent', (req: any, res: any) => {
 			const collection = db.collection('eddnHistory');
 			collection
 				.find()
-				.skip((page -1) * 25)
+				.skip((page - 1) * 25)
 				.limit(25)
 				.sort({_id: -1})
 				.toArray(async (err: Error, docs: object[]) => {
@@ -171,12 +171,12 @@ app.get('/api/recent', (req: any, res: any) => {
 						console.error(err);
 						Raven.captureException(err);
 					}
-					let count: number = await collection.count();
+					const count: number = await collection.count();
 					let newdocs: newDocs = {
 						currentPage: page,
 						perPage: 25,
 						total: count,
-						totaPages: Math.round((count/25)),
+						totaPages: Math.round((count / 25)),
 						data: docs
 					};
 					docs = null;
