@@ -98,11 +98,15 @@ app.get('/api/system/:system', (req: any, res: any) => {
 						Raven.captureException(err);
 					}
 					const count: number = await collection.count({StarSystem: system});
+					let totalPages: number = Math.round((count / 25));
+					if (totalPages === 0) {
+						totalPages = 1;
+					}
 					let newdocs: newDocs = {
 						currentPage: page,
 						perPage: 25,
 						total: count,
-						totaPages: Math.round((count / 25)),
+						totaPages: totalPages,
 						data: docs
 					};
 					docs = null;
@@ -136,12 +140,16 @@ app.get('/api/station/:station', (req: any, res: any) => {
 						console.error(err);
 						Raven.captureException(err);
 					}
-					const count: number = await collection.count({StarSystem: station});
+					const count: number = await collection.count({StationName: station});
+					let totalPages: number = Math.round((count / 25));
+					if (totalPages === 0) {
+						totalPages = 1;
+					}
 					let newdocs: newDocs = {
 						currentPage: page,
 						perPage: 25,
 						total: count,
-						totaPages: Math.round((count / 25)),
+						totaPages: totalPages,
 						data: docs
 					};
 					docs = null;
@@ -172,11 +180,15 @@ app.get('/api/recent', (req: any, res: any) => {
 						Raven.captureException(err);
 					}
 					const count: number = await collection.count();
+					let totalPages: number = Math.round((count / 25));
+					if (totalPages === 0) {
+						totalPages = 1;
+					}
 					let newdocs: newDocs = {
 						currentPage: page,
 						perPage: 25,
 						total: count,
-						totaPages: Math.round((count / 25)),
+						totaPages: totalPages,
 						data: docs
 					};
 					docs = null;
