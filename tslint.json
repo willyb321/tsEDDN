@@ -1,0 +1,8 @@
+{
+	"extends": [
+		"tslint-config-xo/esnext"
+	],
+	"rules": {
+		"no-console": false
+	}
+}

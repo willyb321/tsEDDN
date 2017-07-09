@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"lib": [
+			"es2017"
+		],
+		"target": "es2015",
+		"noImplicitAny": false,
+		"outDir": "./lib",
+		"preserveConstEnums": true,
+		"removeComments": true,
+		"typeRoots": [
+			"./node_modules/@types"
+		]
+	},
+	"include": [
+		"src/**/*"
+	],
+	"exclude": [
+		"node_modules",
+		"**/*-spec.ts"
+	]
+}
