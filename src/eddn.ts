@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as moment from 'moment';
 import * as Raven from 'raven';
 import * as zmq from 'zeromq';
