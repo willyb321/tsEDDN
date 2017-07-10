@@ -122,7 +122,7 @@ app.get('/api/system/:system', (req: any, res: any) => {
 });
 
 app.get('/api/station/:station', (req: any, res: any) => {
-	const station: string = req.params.station;
+	const station: string = req.params.station.toString();
 	const page: number = parseInt(req.query.page, 10) || 1;
 	if (!page) {
 		console.log('No page query, sending first 25');
