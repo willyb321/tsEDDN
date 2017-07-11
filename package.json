@@ -15,6 +15,7 @@
 	"typings": "lib/index.d.ts",
 	"scripts": {
 		"clean": "rimraf lib && rimraf coverage && rimraf .nyc_output && rimraf lib_test",
+		"dev": "concurrently \"npm run watch\" \"nodemon lib/index.js\"",
 		"lint": "tslint --force --format verbose \"src/**/*.ts\"",
 		"prepublish": "npm run build",
 		"prebuild": "npm run clean && npm run lint && echo Using TypeScript && tsc --version",
@@ -42,7 +43,9 @@
 	"devDependencies": {
 		"@types/node": "^8.0.9",
 		"ava": "^0.20.0",
+		"concurrently": "^3.5.0",
 		"coveralls": "^2.13.1",
+		"nodemon": "^1.11.0",
 		"nyc": "^11.0.3",
 		"rimraf": "^2.6.1",
 		"tslint": "^5.5.0",
