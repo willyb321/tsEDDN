@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import * as express from 'express';
 import * as RateLimit from 'express-rate-limit';
 import * as isDev from 'is-dev';
@@ -12,6 +11,14 @@ Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02
 	captureUnhandledRejections: true
 }).install();
 
+process.on('uncaughtException', (err: Error) => {
+	Raven.captureException(err);
+});
+
+process.on('unhandledRejection', (err: Error) => {
+	Raven.captureException(err);
+});
+
 const app: any = express();
 
 const apiLimiter: any = new RateLimit({
@@ -24,7 +31,14 @@ if (!isDev) {
 	app.use('/api/', apiLimiter);
 }
 app.get('/', (req: any, res: any) => {
-	res.send('hello');
+	res.json({
+		message: 'Go to one of the endpoints',
+		endpoints: [
+			'/api/cmdr/:cmdr',
+			'api/station/:station',
+			'/api/recent'
+		]
+	});
 });
 
 interface newDocs {

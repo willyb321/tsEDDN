@@ -4,7 +4,7 @@ import * as Raven from 'raven';
 import * as zmq from 'zeromq';
 import * as zlib from 'zlib';
 import utils from './utils';
-
+import config from './config';
 const sock = zmq.socket('sub');
 
 sock.connect('tcp://eddn.edcd.io:9500');
