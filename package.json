@@ -21,6 +21,7 @@
 	"typings": "lib/index.d.ts",
 	"scripts": {
 		"clean": "rimraf lib && rimraf coverage && rimraf .nyc_output && rimraf lib_test",
+		"dev": "concurrently \"npm run watch\" \"nodemon lib/index.js\"",
 		"lint": "tslint --force --format verbose \"src/**/*.ts\"",
 		"prepublish": "npm run build",
 		"dev": "concurrently \"npm run watch\" \"nodemon lib/index.js\"",
