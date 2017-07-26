@@ -2,9 +2,9 @@ import * as express from 'express';
 import * as RateLimit from 'express-rate-limit';
 import * as isDev from 'is-dev';
 import * as Raven from 'raven';
-import utils from './utils';
 
-import './eddn';
+import utils from './utils';
+import {initEDDN} from './eddn';
 
 Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02cf8b724@sentry.io/187248', {
 	autoBreadcrumbs: true,
@@ -20,7 +20,7 @@ process.on('unhandledRejection', (err: Error) => {
 });
 
 const app: any = express();
-
+initEDDN();
 const apiLimiter: any = new RateLimit({
 	delayMs: 0,
 	headers: true,

@@ -4,7 +4,7 @@ import * as Raven from 'raven';
 import * as zmq from 'zeromq';
 import * as zlib from 'zlib';
 import utils from './utils';
-import config from './config';
+
 const sock = zmq.socket('sub');
 
 sock.connect('tcp://eddn.edcd.io:9500');
@@ -16,19 +16,22 @@ Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02
 	captureUnhandledRejections: true
 }).install();
 
-utils.connectDB()
-	.then((db: any) => {
-		sock.subscribe('');
-		sock.on('message', (topic: any) => {
-			onMessage(topic, db);
+export function initEDDN() {
+	utils.connectDB()
+		.then((db: any) => {
+			sock.subscribe('');
+			sock.on('message', (topic: any) => {
+				const collection: any = db.collection('eddnHistory');
+				onMessage(topic, db, collection);
+			});
+		})
+		.catch((err: Error) => {
+			Raven.captureException(err);
+			console.error(err);
 		});
-	})
-	.catch((err: Error) => {
-		Raven.captureException(err);
-		console.error(err);
-	});
+}
 
-function onMessage(topic: Buffer, db: any) {
+function onMessage(topic: Buffer, db: any, collection: any) {
 	zlib.inflate(topic, (err: Error, res: object) => {
 		if (err) {
 			Raven.context(() => {
@@ -45,7 +48,6 @@ function onMessage(topic: Buffer, db: any) {
 			message.message.uploader = message.header.uploaderID.toString().toLowerCase();
 			message.message.unixTimestamp = moment(message.message.timestamp).valueOf();
 			message.message.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
-			const collection: any = db.collection('eddnHistory');
 			collection
 				.insertOne(message.message)
 				.then(() => {
@@ -66,9 +68,9 @@ function onMessage(topic: Buffer, db: any) {
 							.then((dbNew: any) => {
 								db = dbNew;
 							})
-							.catch((error: Error) => {
-								Raven.captureException(error);
-								console.error(error);
+							.catch((errorNewDB: Error) => {
+								Raven.captureException(errorNewDB);
+								console.error(errorNewDB);
 							});
 					});
 				});
