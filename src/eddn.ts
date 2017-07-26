@@ -62,6 +62,14 @@ function onMessage(topic: Buffer, db: any) {
 						Raven.captureException(error);
 						console.error(error);
 						message = null;
+						utils.connectDB()
+							.then((dbNew: any) => {
+								db = dbNew;
+							})
+							.catch((error: Error) => {
+								Raven.captureException(error);
+								console.error(error);
+							});
 					});
 				});
 		}
