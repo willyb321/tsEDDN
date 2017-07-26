@@ -3,33 +3,32 @@ import * as moment from 'moment';
 import * as Raven from 'raven';
 import * as zmq from 'zeromq';
 import * as zlib from 'zlib';
-import * as mongoose from 'mongoose';
-import * as generator from 'mongoose-gen';
-
 import utils from './utils';
-import {schema} from './journal';
 import config from './config';
 const sock = zmq.socket('sub');
-const journalSchema = new mongoose.Schema(generator.convert(schema));
 
 sock.connect('tcp://eddn.edcd.io:9500');
 
 console.log('Worker connected to port 9500');
-
-mongoose.connect(config.mongoURL);
-const journalModel = mongoose.model('journal', journalSchema);
 
 Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02cf8b724@sentry.io/187248', {
 	autoBreadcrumbs: true,
 	captureUnhandledRejections: true
 }).install();
 
-sock.subscribe('');
-sock.on('message', (topic: any) => {
-	onMessage(topic);
-});
+utils.connectDB()
+	.then((db: any) => {
+		sock.subscribe('');
+		sock.on('message', (topic: any) => {
+			onMessage(topic, db);
+		});
+	})
+	.catch((err: Error) => {
+		Raven.captureException(err);
+		console.error(err);
+	});
 
-function onMessage(topic: Buffer) {
+function onMessage(topic: Buffer, db: any) {
 	zlib.inflate(topic, (err: Error, res: object) => {
 		if (err) {
 			Raven.context(() => {
@@ -46,15 +45,25 @@ function onMessage(topic: Buffer) {
 			message.message.uploader = message.header.uploaderID.toString().toLowerCase();
 			message.message.unixTimestamp = moment(message.message.timestamp).valueOf();
 			message.message.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
-			const messageModel = new journalModel(message.message);
-			messageModel.save(error => {
-				if (error) {
-					Raven.captureException(error);
-				} else {
+			const collection: any = db.collection('eddnHistory');
+			collection
+				.insertOne(message.message)
+				.then(() => {
 					console.log(`inserted ${message.message.event} from: ${message.message.uploader}`);
 					message = null;
-				}
-			});
+				})
+				.catch(error => {
+					Raven.context(() => {
+						Raven.captureBreadcrumb({
+							data: message,
+							file: 'eddn.js',
+							message: 'Insert failed'
+						});
+						Raven.captureException(error);
+						console.error(error);
+						message = null;
+					});
+				});
 		}
 	});
 }

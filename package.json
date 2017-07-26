@@ -44,8 +44,6 @@
 		"lodash": "^4.17.4",
 		"moment": "^2.18.1",
 		"mongodb": "^2.2.30",
-		"mongoose": "^4.11.4",
-		"mongoose-gen": "^2.1.1",
 		"raven": "^2.1.0",
 		"zeromq": "^4.5.0"
 	},
