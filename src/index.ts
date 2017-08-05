@@ -216,6 +216,6 @@ app.get('/api/recent', (req: any, res: any) => {
 		});
 });
 
-app.listen(3000, () => {
+app.listen(3001, () => {
 	console.log('Server listening on 3000');
 });
