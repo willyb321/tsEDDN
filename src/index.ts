@@ -216,6 +216,36 @@ app.get('/api/recent', (req: any, res: any) => {
 		});
 });
 
+app.get('/api/summary', (req: any, res: any) => {
+	const page: number = parseInt(req.query.page, 10) || 1;
+	utils.connectDB()
+		.then((db: any) => {
+			const collection = db.collection('eddnHistory');
+			collection
+			.find()
+			.skip((page - 1) * 25)
+			.limit(25)
+			.sort({_id: -1})
+			.toArray(async (err: Error, docs: object[]) => {
+				if (err) {
+					console.error(err);
+					Raven.captureException(err);
+				}
+				const count: number = await collection.count();
+				let stats = {
+					totalDocs: count
+				};
+				docs = null;
+				res.json(stats);
+				stats = null;
+			});
+		})
+		.catch(err => {
+			Raven.captureException(err);
+			console.error(err);
+		});
+});
+
 app.listen(3001, () => {
 	console.log('Server listening on 3000');
 });
