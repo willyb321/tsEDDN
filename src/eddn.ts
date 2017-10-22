@@ -44,7 +44,7 @@ function onMessage(topic: Buffer, db: any, collection: any) {
 		}
 		let message: any = JSON.parse(res.toString());
 		message.uploader = message.header.uploaderID.toString().toLowerCase();
-		message.StarSystem = message.message.StarSystem || message.message.starSystem || null;
+		message.StarSystem = message.message.StarSystem || message.message.starSystem || message.message.systemName || null;
 		message.StationName = message.message.StationName || message.message.stationName || null;
 		message.header.unixTimestamp = moment(message.message.timestamp).valueOf();
 		message.schema = message.$schemaRef;
