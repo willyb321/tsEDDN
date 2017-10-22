@@ -43,7 +43,9 @@ function onMessage(topic: Buffer, db: any, collection: any) {
 			});
 		}
 		let message: any = JSON.parse(res.toString());
-		message.header.uploader = message.header.uploaderID.toString().toLowerCase();
+		message.uploader = message.header.uploaderID.toString().toLowerCase();
+		message.StarSystem = message.message.StarSystem;
+		message.StationName = message.message.StationName || null;
 		message.header.unixTimestamp = moment(message.message.timestamp).valueOf();
 		message.schema = message.$schemaRef;
 		delete message.$schemaRef;
@@ -51,7 +53,7 @@ function onMessage(topic: Buffer, db: any, collection: any) {
 		collection
 			.insertOne(message)
 			.then(() => {
-				console.log(`inserted ${message.message.event || 'another thing'} from: ${message.header.uploader}`);
+				console.log(`inserted ${message.message.event || 'another thing'} from: ${message.uploader}`);
 				message = null;
 			})
 			.catch(error => {
