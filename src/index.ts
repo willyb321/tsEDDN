@@ -185,7 +185,6 @@ app.get('/api/recent', (req: any, res: any) => {
 			const collection = db.collection('eddnHistory');
 			collection
 				.find()
-				.skip((page - 1) * 25)
 				.limit(25)
 				.sort({_id: -1})
 				.toArray(async (err: Error, docs: object[]) => {

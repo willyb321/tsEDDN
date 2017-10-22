@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import * as moment from 'moment';
 import * as Raven from 'raven';
 import * as zmq from 'zeromq';
@@ -44,36 +43,34 @@ function onMessage(topic: Buffer, db: any, collection: any) {
 			});
 		}
 		let message: any = JSON.parse(res.toString());
-		if (message.message.event) {
-			message.message.uploader = message.header.uploaderID.toString().toLowerCase();
-			message.message.unixTimestamp = moment(message.message.timestamp).valueOf();
-			message.message.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
-			collection
-				.insertOne(message.message)
-				.then(() => {
-					console.log(`inserted ${message.message.event} from: ${message.message.uploader}`);
-					message = null;
-				})
-				.catch(error => {
-					Raven.context(() => {
-						Raven.captureBreadcrumb({
-							data: message,
-							file: 'eddn.js',
-							message: 'Insert failed'
-						});
-						Raven.captureException(error);
-						console.error(error);
-						message = null;
-						utils.connectDB()
-							.then((dbNew: any) => {
-								db = dbNew;
-							})
-							.catch((errorNewDB: Error) => {
-								Raven.captureException(errorNewDB);
-								console.error(errorNewDB);
-							});
+		message.header.uploader = message.header.uploaderID.toString().toLowerCase();
+		message.header.unixTimestamp = moment(message.message.timestamp).valueOf();
+		message.header.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
+		collection
+			.insertOne(message)
+			.then(() => {
+				console.log(`inserted ${message.message.event || 'another thing'} from: ${message.header.uploader}`);
+				message = null;
+			})
+			.catch(error => {
+				Raven.context(() => {
+					Raven.captureBreadcrumb({
+						data: message,
+						file: 'eddn.js',
+						message: 'Insert failed'
 					});
+					Raven.captureException(error);
+					console.error(error);
+					message = null;
+					utils.connectDB()
+						.then((dbNew: any) => {
+							db = dbNew;
+						})
+						.catch((errorNewDB: Error) => {
+							Raven.captureException(errorNewDB);
+							console.error(errorNewDB);
+						});
 				});
-		}
+			});
 	});
 }
