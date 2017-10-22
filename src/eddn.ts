@@ -45,8 +45,8 @@ function onMessage(topic: Buffer, db: any, collection: any) {
 		let message: any = JSON.parse(res.toString());
 		message.header.uploader = message.header.uploaderID.toString().toLowerCase();
 		message.header.unixTimestamp = moment(message.message.timestamp).valueOf();
-		message.header.schema = message.header.$schemaRef;
-		delete message.header.$schemaRef;
+		message.schema = message.$schemaRef;
+		delete message.$schemaRef;
 		message.header.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
 		collection
 			.insertOne(message)
