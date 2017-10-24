@@ -5,7 +5,7 @@ import * as zlib from 'zlib';
 import * as mongoose from 'mongoose';
 import * as schemas from './models/';
 import * as GenerateSchema from 'generate-schema';
-import utils from './utils';
+import utils, {db} from './utils';
 
 const sock = zmq.socket('sub');
 
@@ -19,20 +19,13 @@ Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02
 }).install();
 
 export function initEDDN() {
-	utils.connectDB()
-		.then((db: any) => {
-			sock.subscribe('');
-			sock.on('message', (topic: any) => {
-				onMessage(topic, db);
-			});
-		})
-		.catch((err: Error) => {
-			Raven.captureException(err);
-			console.error(err);
-		});
+	sock.subscribe('');
+	sock.on('message', (topic: any) => {
+		onMessage(topic);
+	});
 }
 
-function onMessage(topic: Buffer, db: any) {
+function onMessage(topic: Buffer) {
 	zlib.inflate(topic, (err: Error, res: object) => {
 		if (err) {
 			Raven.context(() => {
@@ -55,6 +48,7 @@ function onMessage(topic: Buffer, db: any) {
 		message.eddnSchema = message.$schemaRef;
 		delete message.$schemaRef;
 		message.header.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
+		// console.log(message);
 		const modelled = new schemas.journalModel(message);
 		modelled.save((errModel, newMessage) => {
 			if (err) {

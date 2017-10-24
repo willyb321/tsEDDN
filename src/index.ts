@@ -2,10 +2,11 @@ import * as express from 'express';
 import * as RateLimit from 'express-rate-limit';
 import * as isDev from 'is-dev';
 import * as Raven from 'raven';
-
-import utils from './utils';
+import * as schemas from './models/'
+import utils, {db} from './utils';
 import {initEDDN} from './eddn';
 
+const mongoosePaginate = require('mongoose-paginate');
 Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02cf8b724@sentry.io/187248', {
 	autoBreadcrumbs: true,
 	captureUnhandledRejections: true
@@ -55,41 +56,22 @@ app.get('/api/cmdr/:cmdr', (req: any, res: any) => {
 	if (!page) {
 		console.log('No page query, sending first 25');
 	}
-	utils.connectDB()
-		.then((db: any) => {
-			const collection: any = db.collection('eddnHistory');
-			collection
-				.find({uploader: cmdr})
-				.skip((page - 1) * 10)
-				.limit(25)
-				.sort({unixTimestamp: -1})
-				.toArray(async (err: Error, docs: object[]) => {
-					if (err) {
-						console.error(err);
-						Raven.captureException(err);
-					}
-					const count: number = await collection.count({uploader: cmdr});
-					let totalPages: number = Math.round((count / 25));
-					if (totalPages === 0) {
-						totalPages = 1;
-					}
-					let newdocs: newDocs = {
-						currentPage: page,
-						perPage: 25,
-						total: count,
-						totaPages: totalPages,
-						data: docs
-					};
-					docs = null;
-					res.json(newdocs);
-					newdocs = null;
-					db.close();
-				});
-		})
-		.catch((err: Error) => {
-			Raven.captureException(err);
-			console.error(err);
-		});
+	schemas.journalModel.paginate({uploader: cmdr}, {offset: (page - 1) * 25, limit: 25}).then(async result => {
+		const count: number = await schemas.journalModel.count({uploader: cmdr});
+		let totalPages: number = Math.round((count / 25));
+		if (totalPages === 0) {
+			totalPages = 1;
+		}
+		let newdocs: newDocs = {
+			currentPage: page,
+			perPage: 25,
+			total: count,
+			totaPages: totalPages,
+			data: result.docs
+		};
+		res.json(newdocs);
+		newdocs = null;
+	});
 });
 
 app.get('/api/system/:system', (req: any, res: any) => {
@@ -98,41 +80,23 @@ app.get('/api/system/:system', (req: any, res: any) => {
 	if (!page) {
 		console.log('No page query, sending first 25');
 	}
-	utils.connectDB()
-		.then((db: any) => {
-			const collection = db.collection('eddnHistory');
-			collection
-				.find({StarSystem: system})
-				.skip((page - 1) * 10)
-				.limit(25)
-				.sort({unixTimestamp: -1})
-				.toArray(async (err: Error, docs: object[]) => {
-					if (err) {
-						console.error(err);
-						Raven.captureException(err);
-					}
-					const count: number = await collection.count({StarSystem: system});
-					let totalPages: number = Math.round((count / 25));
-					if (totalPages === 0) {
-						totalPages = 1;
-					}
-					let newdocs: newDocs = {
-						currentPage: page,
-						perPage: 25,
-						total: count,
-						totaPages: totalPages,
-						data: docs
-					};
-					docs = null;
-					res.json(newdocs);
-					newdocs = null;
-					db.close();
-				});
-		})
-		.catch(err => {
-			Raven.captureException(err);
-			console.error(err);
-		});
+	const collection = db.collection('eddnHistory');
+	schemas.journalModel.paginate({StarSystem: system}, {offset: (page - 1) * 25, limit: 25}).then(async result => {
+		const count: number = await collection.count({StarSystem: system});
+		let totalPages: number = Math.round((count / 25));
+		if (totalPages === 0) {
+			totalPages = 1;
+		}
+		let newdocs: newDocs = {
+			currentPage: page,
+			perPage: 25,
+			total: count,
+			totaPages: totalPages,
+			data: result.docs
+		};
+		res.json(newdocs);
+		newdocs = null;
+	});
 });
 
 app.get('/api/station/:station', (req: any, res: any) => {
@@ -141,108 +105,42 @@ app.get('/api/station/:station', (req: any, res: any) => {
 	if (!page) {
 		console.log('No page query, sending first 25');
 	}
-	utils.connectDB()
-		.then((db: any) => {
-			const collection = db.collection('eddnHistory');
-			collection
-				.find({StationName: station})
-				.skip((page - 1) * 25)
-				.limit(25)
-				.sort({unixTimestamp: -1})
-				.toArray(async (err: Error, docs: object[]) => {
-					if (err) {
-						console.error(err);
-						Raven.captureException(err);
-					}
-					const count: number = await collection.count({StationName: station});
-					let totalPages: number = Math.round((count / 25));
-					if (totalPages === 0) {
-						totalPages = 1;
-					}
-					let newdocs: newDocs = {
-						currentPage: page,
-						perPage: 25,
-						total: count,
-						totaPages: totalPages,
-						data: docs
-					};
-					docs = null;
-					res.json(newdocs);
-					newdocs = null;
-					db.close();
-				});
-		})
-		.catch(err => {
-			Raven.captureException(err);
-			console.error(err);
-		});
+	schemas.journalModel.paginate({StationName: station}, {offset: (page - 1) * 25, limit: 25}).then(async result => {
+		const count: number = await schemas.journalModel.count({StationName: station});
+		let totalPages: number = Math.round((count / 25));
+		if (totalPages === 0) {
+			totalPages = 1;
+		}
+		let newdocs: newDocs = {
+			currentPage: page,
+			perPage: 25,
+			total: count,
+			totaPages: totalPages,
+			data: result.docs
+		};
+		res.json(newdocs);
+		newdocs = null;
+	});
 });
 
 app.get('/api/recent', (req: any, res: any) => {
 	const page: number = parseInt(req.query.page, 10) || 1;
-	utils.connectDB()
-		.then((db: any) => {
-			const collection = db.collection('eddnHistory');
-			collection
-				.find()
-				.limit(25)
-				.sort({_id: -1})
-				.toArray(async (err: Error, docs: object[]) => {
-					if (err) {
-						console.error(err);
-						Raven.captureException(err);
-					}
-					const count: number = await collection.count();
-					let totalPages: number = Math.round((count / 25));
-					if (totalPages === 0) {
-						totalPages = 1;
-					}
-					let newdocs: newDocs = {
-						currentPage: page,
-						perPage: 25,
-						total: count,
-						totaPages: totalPages,
-						data: docs
-					};
-					docs = null;
-					res.json(newdocs);
-					newdocs = null;
-				});
-		})
-		.catch(err => {
-			Raven.captureException(err);
-			console.error(err);
-		});
-});
-
-app.get('/api/summary', (req: any, res: any) => {
-	const page: number = parseInt(req.query.page, 10) || 1;
-	utils.connectDB()
-		.then((db: any) => {
-			const collection = db.collection('eddnHistory');
-			collection
-			.find()
-			.skip((page - 1) * 25)
-			.limit(25)
-			.sort({_id: -1})
-			.toArray(async (err: Error, docs: object[]) => {
-				if (err) {
-					console.error(err);
-					Raven.captureException(err);
-				}
-				const count: number = await collection.count();
-				let stats = {
-					totalDocs: count
-				};
-				docs = null;
-				res.json(stats);
-				stats = null;
-			});
-		})
-		.catch(err => {
-			Raven.captureException(err);
-			console.error(err);
-		});
+	schemas.journalModel.paginate({}, {offset: 0, limit: 25}).then(async result => {
+		const count: number = await schemas.journalModel.count({});
+		let totalPages: number = Math.round((count / 25));
+		if (totalPages === 0) {
+			totalPages = 1;
+		}
+		let newdocs: newDocs = {
+			currentPage: page,
+			perPage: 25,
+			total: count,
+			totaPages: totalPages,
+			data: result.docs
+		};
+		res.json(newdocs);
+		newdocs = null;
+	});
 });
 
 app.listen(3001, () => {
