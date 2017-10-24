@@ -1,15 +1,16 @@
 import {MongoClient} from 'mongodb';
 import config from './config';
 import * as _ from 'lodash';
+import * as mongoose from 'mongoose';
+import * as schemas from './models/';
 
 function connectDB() {
 	return new Promise((resolve: any, reject: any) => {
-		MongoClient.connect(config.mongoURL, (err: Error, db: any) => {
-			if (err) {
-				reject(err);
-			} else {
-				resolve(db);
-			}
+		mongoose.connect(config.mongoURL);
+		const db = mongoose.connection;
+		db.on('error', console.error.bind(console, 'connection error:'));
+		db.once('open', () => {
+			resolve(db);
 		});
 	});
 }

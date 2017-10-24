@@ -2,6 +2,9 @@ import * as moment from 'moment';
 import * as Raven from 'raven';
 import * as zmq from 'zeromq';
 import * as zlib from 'zlib';
+import * as mongoose from 'mongoose';
+import * as schemas from './models/';
+import * as GenerateSchema from 'generate-schema';
 import utils from './utils';
 
 const sock = zmq.socket('sub');
@@ -20,8 +23,7 @@ export function initEDDN() {
 		.then((db: any) => {
 			sock.subscribe('');
 			sock.on('message', (topic: any) => {
-				const collection: any = db.collection('eddnHistory');
-				onMessage(topic, db, collection);
+				onMessage(topic, db);
 			});
 		})
 		.catch((err: Error) => {
@@ -30,7 +32,7 @@ export function initEDDN() {
 		});
 }
 
-function onMessage(topic: Buffer, db: any, collection: any) {
+function onMessage(topic: Buffer, db: any) {
 	zlib.inflate(topic, (err: Error, res: object) => {
 		if (err) {
 			Raven.context(() => {
@@ -42,39 +44,25 @@ function onMessage(topic: Buffer, db: any, collection: any) {
 				console.error(err);
 			});
 		}
-		let message: any = JSON.parse(res.toString());
+		const message: any = JSON.parse(res.toString());
+		if (message.$schemaRef !== 'https://eddn.edcd.io/schemas/journal/1') {
+			return;
+		}
 		message.uploader = message.header.uploaderID.toString().toLowerCase();
 		message.StarSystem = message.message.StarSystem || message.message.starSystem || message.message.systemName || null;
 		message.StationName = message.message.StationName || message.message.stationName || null;
 		message.header.unixTimestamp = moment(message.message.timestamp).valueOf();
-		message.schema = message.$schemaRef;
+		message.eddnSchema = message.$schemaRef;
 		delete message.$schemaRef;
 		message.header.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
-		collection
-			.insertOne(message)
-			.then(() => {
+		const modelled = new schemas.journalModel(message);
+		modelled.save((errModel, newMessage) => {
+			if (err) {
+				console.error(errModel);
+				Raven.captureException(errModel);
+			} else {
 				console.log(`inserted ${message.message.event || 'another thing'} from: ${message.uploader}`);
-				message = null;
-			})
-			.catch(error => {
-				Raven.context(() => {
-					Raven.captureBreadcrumb({
-						data: message,
-						file: 'eddn.js',
-						message: 'Insert failed'
-					});
-					Raven.captureException(error);
-					console.error(error);
-					message = null;
-					utils.connectDB()
-						.then((dbNew: any) => {
-							db = dbNew;
-						})
-						.catch((errorNewDB: Error) => {
-							Raven.captureException(errorNewDB);
-							console.error(errorNewDB);
-						});
-				});
-			});
+			}
+		});
 	});
 }
