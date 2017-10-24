@@ -1,0 +1,25 @@
+html
+	head
+		title= title
+	body
+		h1 Search EDDN
+		a(href="/api/recent") Recent events
+		form#cmdr(onsubmit="submitSearch(event)" autocomplete="off")
+			p Search CMDR:
+			input(type=text name="search" autocomplete="off")
+			input(type="submit")
+		form#station(onsubmit="submitSearch(event)" autocomplete="off")
+			p Search Station:
+			input(type=text name="search" autocomplete="off")
+			input(type="submit")
+		form#system(onsubmit="submitSearch(event)" autocomplete="off")
+			p Search System:
+			input(type=text name="search" autocomplete="off")
+			input(type="submit")
+		script.
+			function submitSearch(e) {
+				e.preventDefault()
+				const id = e.target.id;
+				const query = e.target[0].value;
+				window.location.href = `/api/${id}/${query}`;
+			}
