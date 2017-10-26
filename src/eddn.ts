@@ -4,8 +4,7 @@ import * as zmq from 'zeromq';
 import * as zlib from 'zlib';
 import * as mongoose from 'mongoose';
 import * as schemas from './models/';
-import * as GenerateSchema from 'generate-schema';
-import utils, {db} from './utils';
+import {db, utils} from './utils';
 
 const sock = zmq.socket('sub');
 

@@ -1,6 +1,4 @@
 import * as express from 'express';
-import * as RateLimit from 'express-rate-limit';
-import * as isDev from 'is-dev';
 import * as Raven from 'raven';
 import * as schemas from './models/';
 import {db} from './utils';
@@ -22,15 +20,7 @@ process.on('unhandledRejection', (err: Error) => {
 const app: any = express();
 app.set('view engine', 'pug');
 initEDDN();
-const apiLimiter: any = new RateLimit({
-	delayMs: 0,
-	headers: true,
-	max: 75,
-	windowMs: 15 * 60 * 1000
-});
-if (!isDev) {
-	app.use('/api/', apiLimiter);
-}
+
 app.get('/', (req: any, res: any) => {
 	res.render('index', {title: 'Hey', message: 'Hello there!'});
 });

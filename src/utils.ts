@@ -13,8 +13,6 @@ db.once('open', () => {
 export interface util {
 	db: mongoose.Connection;
 }
-const utils: util = {
+export const utils: util = {
 	db
 };
-
-export default utils;
