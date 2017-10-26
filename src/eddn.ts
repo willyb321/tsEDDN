@@ -2,10 +2,7 @@ import * as moment from 'moment';
 import * as Raven from 'raven';
 import * as zmq from 'zeromq';
 import * as zlib from 'zlib';
-import * as mongoose from 'mongoose';
 import * as schemas from './models/';
-import {db, utils} from './utils';
-
 const sock = zmq.socket('sub');
 
 sock.connect('tcp://eddn.edcd.io:9500');
@@ -47,10 +44,9 @@ function onMessage(topic: Buffer) {
 		message.eddnSchema = message.$schemaRef;
 		delete message.$schemaRef;
 		message.header.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
-		// console.log(message);
 		const modelled = new schemas.journalModel(message);
-		modelled.save((errModel, newMessage) => {
-			if (err) {
+		modelled.save(errModel => {
+			if (errModel) {
 				console.error(errModel);
 				Raven.captureException(errModel);
 			} else {
